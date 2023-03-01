@@ -208,7 +208,15 @@ func main() {
 			fmt.Printf("[ERROR] could not write file %s.client due to %s\n", fileName, err)
 			os.Exit(1)
 		} else {
-			fmt.Printf("[RESULT] write local file. Speed: %f MByte/sec\n", speed)
+			fmt.Printf("[RESULT] write local file. Speed: %.2f MByte/sec\n", speed)
+		}
+
+		// Read the file
+		if speed, err := testReadFile(fileName + ".client"); err != nil {
+			fmt.Printf("[ERROR] could not read file %s.client due to %s\n", fileName, err)
+			os.Exit(1)
+		} else {
+			fmt.Printf("[RESULT] read local file. Speed: %.2f MByte/sec\n", speed)
 		}
 
 		// Send contents to the server, where it will not be written to file but discarded
@@ -216,7 +224,7 @@ func main() {
 			fmt.Printf("[ERROR] error sending data %s", err)
 			os.Exit(1)
 		} else {
-			fmt.Printf("[RESULT] data transfer with discard at destination. Speed %f Mbit/sec\n", speed*8)
+			fmt.Printf("[RESULT] data transfer with discard at destination. Speed %.2f Mbit/sec\n", speed*8)
 		}
 
 		// Send contents to the server, where it will be written to file
@@ -224,7 +232,7 @@ func main() {
 			fmt.Printf("[ERROR] error sending data %s", err)
 			os.Exit(1)
 		} else {
-			fmt.Printf("[RESULT] data transfer with write at destination. Speed %f Mbit/sec = %f MByte/sec\n", speed*8, speed)
+			fmt.Printf("[RESULT] data transfer with write at destination. Speed %.2f Mbit/sec = %.2f MByte/sec\n", speed*8, speed)
 		}
 
 		// Send close command
@@ -300,6 +308,33 @@ func testWriteFile(fileName string) (float64, error) {
 
 		if doSync {
 			file.Sync()
+		}
+	}
+
+	endTime := time.Now()
+	diff := endTime.Sub(startTime)
+
+	return float64(fileSize/(1024*1024)) / diff.Seconds(), nil
+}
+
+// Reads the contents of the file, doing nothing with it
+func testReadFile(fileName string) (float64, error) {
+
+	// Open file for writing
+	var file *os.File
+	var ferr error
+	if file, ferr = os.Open(fileName); ferr != nil {
+		return 0, ferr
+	}
+	defer file.Close()
+
+	startTime := time.Now()
+
+	// Read from file
+	myBytes := make([]byte, sliceSize)
+	for i := 0; i < numSlices; i++ {
+		if _, err := file.Read(myBytes); err != nil {
+			return 0, err
 		}
 	}
 
@@ -582,7 +617,7 @@ func testInsertionPerformance(dbHandle *sql.DB, insertThreads int) {
 
 	c := make(chan int)
 	var wg sync.WaitGroup
-	for i := 0; i < 20; i++ {
+	for i := 0; i < insertThreads; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
