@@ -1,5 +1,5 @@
 # simpleprofiler
-Simple disk, network and database operations performance measurement tool
+Simple disk, network and database operations performance measurement tool for my personal use
 
 # Purpose
 Simple utility to measure the performance the following operations:
@@ -51,6 +51,7 @@ starting test
 ```
 
 Some options
+* `-help` of course
 * `-client` to launch the client, that reads and writes a file locally and then sends http requests to the server
 * `-server` to launch the server, which publishes some endpoints for receiving the file from the client
 * `-sync` will force a flush per slice written to file
